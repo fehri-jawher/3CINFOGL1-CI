@@ -13,8 +13,13 @@ import tn.esprit.spring.entities.Entreprise;
 import tn.esprit.spring.repository.DepartementRepository;
 import tn.esprit.spring.repository.EntrepriseRepository;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 @Service
 public class EntrepriseServiceImpl implements IEntrepriseService {
+	
+	private static final Logger l = LogManager.getLogger(EntrepriseServiceImpl.class);
 
 	@Autowired
     EntrepriseRepository entrepriseRepoistory;
@@ -22,13 +27,27 @@ public class EntrepriseServiceImpl implements IEntrepriseService {
 	DepartementRepository deptRepoistory;
 	
 	public int ajouterEntreprise(Entreprise entreprise) {
-		entrepriseRepoistory.save(entreprise);
-		return entreprise.getId();
+		try{
+			entrepriseRepoistory.save(entreprise);
+			l.info("Entreprise added successfully");
+			return entreprise.getId();	
+		}catch (Exception e){
+			l.error("Error : " + e.getMessage());
+		}
+		
+		return 0;
 	}
 
 	public int ajouterDepartement(Departement dep) {
-		deptRepoistory.save(dep);
-		return dep.getId();
+		try{
+			deptRepoistory.save(dep);
+			l.info("Deapartment added successfully");
+			return dep.getId();	
+		}catch (Exception e){
+			l.error("Error : " + e.getMessage());
+		}
+		
+		return 0;
 	}
 	
 	public void affecterDepartementAEntreprise(int depId, int entrepriseId) {
@@ -37,37 +56,64 @@ public class EntrepriseServiceImpl implements IEntrepriseService {
 				// ==> c'est l'objet departement(le master) qui va mettre a jour l'association
 				//Rappel : la classe qui contient mappedBy represente le bout Slave
 				//Rappel : Dans une relation oneToMany le mappedBy doit etre du cote one.
-				Entreprise entrepriseManagedEntity = entrepriseRepoistory.findById(entrepriseId).get();
-				Departement depManagedEntity = deptRepoistory.findById(depId).get();
-				
-				depManagedEntity.setEntreprise(entrepriseManagedEntity);
-				deptRepoistory.save(depManagedEntity);
+		
+				try{
+					Entreprise entrepriseManagedEntity = entrepriseRepoistory.findById(entrepriseId).get();
+					Departement depManagedEntity = deptRepoistory.findById(depId).get();
+					depManagedEntity.setEntreprise(entrepriseManagedEntity);
+					deptRepoistory.save(depManagedEntity);
+					l.info("Deapartment affected successfully");
+				}catch(Exception e){
+					l.error("Error : " + e.getMessage());
+				}
 		
 	}
 	
 	public List<String> getAllDepartementsNamesByEntreprise(int entrepriseId) {
-		Entreprise entrepriseManagedEntity = entrepriseRepoistory.findById(entrepriseId).get();
-		List<String> depNames = new ArrayList<>();
-		for(Departement dep : entrepriseManagedEntity.getDepartements()){
-			depNames.add(dep.getName());
+		try{
+			Entreprise entrepriseManagedEntity = entrepriseRepoistory.findById(entrepriseId).get();
+			List<String> depNames = new ArrayList<>();
+			for(Departement dep : entrepriseManagedEntity.getDepartements()){
+				depNames.add(dep.getName());
+			}
+			l.info("Deapartment list is returned successfully");
+			return depNames;
+		}catch(Exception e){
+			l.error("Error : " + e.getMessage());
 		}
 		
-		return depNames;
+		return null;
 	}
 
 	@Transactional
 	public void deleteEntrepriseById(int entrepriseId) {
-		entrepriseRepoistory.delete(entrepriseRepoistory.findById(entrepriseId).get());	
+		try {
+			entrepriseRepoistory.delete(entrepriseRepoistory.findById(entrepriseId).get());
+			l.info("Entreprise deleted successfully");
+		}catch(Exception e){
+			l.error("Error : " + e.getMessage());
+		}
 	}
 
 	@Transactional
 	public void deleteDepartementById(int depId) {
-		deptRepoistory.delete(deptRepoistory.findById(depId).get());	
+		try {
+			deptRepoistory.delete(deptRepoistory.findById(depId).get());
+			l.info("Department deleted successfully");
+		}catch(Exception e){
+			l.error("Error : " + e.getMessage());
+		}
 	}
 
 
 	public Entreprise getEntrepriseById(int entrepriseId) {
-		return entrepriseRepoistory.findById(entrepriseId).get();	
+		try{
+			return entrepriseRepoistory.findById(entrepriseId).get();
+		}catch(Exception e){
+			l.error("Error : " + e.getMessage());
+		}
+		
+		return null;
 	}
 
 }
