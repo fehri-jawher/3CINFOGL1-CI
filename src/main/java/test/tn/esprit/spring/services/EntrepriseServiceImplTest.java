@@ -1,4 +1,4 @@
-package tn.esprit.spring.services;
+package test.tn.esprit.spring.services;
 
 import java.text.ParseException;
 import org.junit.Assert;
@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import tn.esprit.spring.entities.Entreprise;
+import tn.esprit.spring.services.EntrepriseServiceImpl;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
