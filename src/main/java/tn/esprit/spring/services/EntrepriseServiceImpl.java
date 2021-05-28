@@ -26,16 +26,16 @@ public class EntrepriseServiceImpl implements IEntrepriseService {
 	@Autowired
 	DepartementRepository deptRepoistory;
 	
-	public int ajouterEntreprise(Entreprise entreprise) {
+	public Entreprise ajouterEntreprise(Entreprise entreprise) {
 		try{
 			entrepriseRepoistory.save(entreprise);
 			l.info("Entreprise added successfully");
-			return entreprise.getId();	
+			return entreprise;	
 		}catch (Exception e){
 			l.error("Error : " + e.getMessage());
 		}
 		
-		return 0;
+		return new Entreprise();
 	}
 
 	public int ajouterDepartement(Departement dep) {
