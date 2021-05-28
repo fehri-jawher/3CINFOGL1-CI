@@ -24,7 +24,7 @@ public class EntrepriseServiceImplTest {
 		Entreprise e = new Entreprise("Dream Tek", "Borj Cedria");
 		Entreprise eAdded = es.ajouterEntreprise(e);
 		Assert.assertEquals(e.getName(), eAdded.getName());
-		
+	
 	}
 
 }
