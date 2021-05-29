@@ -7,7 +7,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import tn.esprit.spring.entities.Departement;
 import tn.esprit.spring.entities.Employe;
 import tn.esprit.spring.entities.Mission;
@@ -32,74 +33,115 @@ public class TimesheetServiceImpl implements ITimesheetService {
 	@Autowired
 	EmployeRepository employeRepository;
 	
+	private static final Logger l = LogManager.getLogger(EmployeServiceImpl.class);
+	
 	public int ajouterMission(Mission mission) {
-		missionRepository.save(mission);
-		return mission.getId();
+		/*missionRepository.save(mission);
+		return mission.getId();*/
+		try {
+			missionRepository.save(mission);
+			l.info("Mission added successfuly");
+			return mission.getId();
+		} catch(Exception e) {
+			l.error("Error : " + e.getMessage());
+		}
+		
+		return 0;
 	}
     
 	public void affecterMissionADepartement(int missionId, int depId) {
-		Mission mission = missionRepository.findById(missionId).get();
-		Departement dep = deptRepoistory.findById(depId).get();
-		mission.setDepartement(dep);
-		missionRepository.save(mission);
-		
+		try {
+			Mission mission = missionRepository.findById(missionId).get();
+			Departement dep = deptRepoistory.findById(depId).get();
+			mission.setDepartement(dep);
+			missionRepository.save(mission);
+			l.info("mission updated successfuly");
+		} catch(Exception e) {
+			l.error("Error : " + e.getMessage());
+		}
 	}
 
 	public void ajouterTimesheet(int missionId, int employeId, Date dateDebut, Date dateFin) {
-		TimesheetPK timesheetPK = new TimesheetPK();
-		timesheetPK.setDateDebut(dateDebut);
-		timesheetPK.setDateFin(dateFin);
-		timesheetPK.setIdEmploye(employeId);
-		timesheetPK.setIdMission(missionId);
-		
-		Timesheet timesheet = new Timesheet();
-		timesheet.setTimesheetPK(timesheetPK);
-		timesheet.setValide(false); //par defaut non valide
-		timesheetRepository.save(timesheet);
-		
+		try {
+			TimesheetPK timesheetPK = new TimesheetPK();
+			timesheetPK.setDateDebut(dateDebut);
+			timesheetPK.setDateFin(dateFin);
+			timesheetPK.setIdEmploye(employeId);
+			timesheetPK.setIdMission(missionId);
+			
+			Timesheet timesheet = new Timesheet();
+			timesheet.setTimesheetPK(timesheetPK);
+			timesheet.setValide(false); //par defaut non valide
+			timesheetRepository.save(timesheet);
+			l.info("timesheet added successfuly");
+		} catch(Exception e) {
+			l.error("Error : " + e.getMessage());
+		}
 	}
 
 	
 	public void validerTimesheet(int missionId, int employeId, Date dateDebut, Date dateFin, int validateurId) {
-		System.out.println("In valider Timesheet");
-		Employe validateur = employeRepository.findById(validateurId).get();
-		Mission mission = missionRepository.findById(missionId).get();
-		//verifier s'il est un chef de departement (interet des enum)
-		if(!validateur.getRole().equals(Role.CHEF_DEPARTEMENT)){
-			System.out.println("l'employe doit etre chef de departement pour valider une feuille de temps !");
-			return;
-		}
-		//verifier s'il est le chef de departement de la mission en question
-		boolean chefDeLaMission = false;
-		for(Departement dep : validateur.getDepartements()){
-			if(dep.getId() == mission.getDepartement().getId()){
-				chefDeLaMission = true;
-				break;
+		try {
+			System.out.println("In valider Timesheet");
+		
+			Employe validateur = employeRepository.findById(validateurId).get();
+			Mission mission = missionRepository.findById(missionId).get();
+			//verifier s'il est un chef de departement (interet des enum)
+			if(!validateur.getRole().equals(Role.CHEF_DEPARTEMENT)){
+				System.out.println("l'employe doit etre chef de departement pour valider une feuille de temps !");
+				return;
 			}
+			//verifier s'il est le chef de departement de la mission en question
+			boolean chefDeLaMission = false;
+			for(Departement dep : validateur.getDepartements()){
+				if(dep.getId() == mission.getDepartement().getId()){
+					chefDeLaMission = true;
+					break;
+				}
+			}
+			if(!chefDeLaMission){
+				System.out.println("l'employe doit etre chef de departement de la mission en question");
+				return;
+			}
+	//
+			TimesheetPK timesheetPK = new TimesheetPK(missionId, employeId, dateDebut, dateFin);
+			Timesheet timesheet =timesheetRepository.findBytimesheetPK(timesheetPK);
+			timesheet.setValide(true);
+			
+			//Comment Lire une date de la base de données
+			SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+			System.out.println("dateDebut : " + dateFormat.format(timesheet.getTimesheetPK().getDateDebut()));
+			l.info("Timesheet validate successfuly");
+		} catch(Exception e) {
+			l.error("Error : " + e.getMessage());
 		}
-		if(!chefDeLaMission){
-			System.out.println("l'employe doit etre chef de departement de la mission en question");
-			return;
-		}
-//
-		TimesheetPK timesheetPK = new TimesheetPK(missionId, employeId, dateDebut, dateFin);
-		Timesheet timesheet =timesheetRepository.findBytimesheetPK(timesheetPK);
-		timesheet.setValide(true);
-		
-		//Comment Lire une date de la base de données
-		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-		System.out.println("dateDebut : " + dateFormat.format(timesheet.getTimesheetPK().getDateDebut()));
-		
 	}
 
 	
 	public List<Mission> findAllMissionByEmployeJPQL(int employeId) {
-		return timesheetRepository.findAllMissionByEmployeJPQL(employeId);
+		try {
+			l.info("findAllMissionByEmployeJPQL ");
+			return timesheetRepository.findAllMissionByEmployeJPQL(employeId);
+		}
+		catch(Exception e) {
+			l.error("Error : " + e.getMessage());
+		}
+
+		return null;
 	}
 
 	
 	public List<Employe> getAllEmployeByMission(int missionId) {
-		return timesheetRepository.getAllEmployeByMission(missionId);
+		//return timesheetRepository.getAllEmployeByMission(missionId);
+		try {
+			l.info("getAllEmployeByMission ");
+			return timesheetRepository.getAllEmployeByMission(missionId);
+		}
+		catch(Exception e) {
+			l.error("Error : " + e.getMessage());
+		}
+
+		return null;
 	}
 
 }
