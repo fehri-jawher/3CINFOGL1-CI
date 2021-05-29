@@ -36,16 +36,16 @@ public class EmployeServiceImpl implements IEmployeService {
 	
 	private static final Logger l = LogManager.getLogger(EmployeServiceImpl.class);
 
-	public int ajouterEmploye(Employe employe) {
+	public Employe ajouterEmploye(Employe employe) {
 		try {
 			employeRepository.save(employe);
 			l.info("employe added successfuly");
-			return employe.getId();
+			return employe;
 		} catch(Exception e) {
 			l.error("Error : " + e.getMessage());
 		}
 		
-		return 0;
+		return new Employe();
 	}
 
 	public void mettreAjourEmailByEmployeId(String email, int employeId) {
